@@ -28,19 +28,34 @@ public class EncryptWatermark {
 	private static final Logger logger = LoggerFactory.getLogger(EncryptWatermark.class);
 
 	public static void main(String[] args) {
-		process("t:/pdf/in.pdf", "t:/pdf/out.pdf", null, "cai".getBytes(), "CAIYONGJI CAIYONGJI CAIYONGJI CAIYONGJI");
+		process("t:/pdf/in.pdf", "t:/pdf/out.pdf", null,
+				"caicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicaicai"
+						.getBytes(),
+				"CAIYONGJI CAIYONGJI CAIYONGJI CAIYONGJI");
 	}
 
+	/**
+	 * encrypt & water mark
+	 * 
+	 * @param src
+	 *            source path
+	 * @param dest
+	 *            destination path
+	 * @param ownerPassword
+	 *            open password
+	 * @param permissions
+	 *            modify password
+	 * @param content
+	 *            water mark content
+	 */
 	@SuppressWarnings("resource")
 	public static void process(String src, String dest, byte[] ownerPassword, byte[] permissions, String content) {
 		try {
 			File file = new File(dest);
 			file.getParentFile().mkdirs();
 			PdfReader reader = new PdfReader(src, new ReaderProperties().setPassword(permissions));
-			PdfWriter writer = new PdfWriter(dest,
-					new WriterProperties().setStandardEncryption(ownerPassword, permissions,
-							EncryptionConstants.ALLOW_PRINTING, EncryptionConstants.ENCRYPTION_AES_128
-									| EncryptionConstants.DO_NOT_ENCRYPT_METADATA));
+			PdfWriter writer = new PdfWriter(dest, new WriterProperties().setStandardEncryption(ownerPassword,
+					permissions, EncryptionConstants.ALLOW_PRINTING, EncryptionConstants.ENCRYPTION_AES_256));
 			PdfDocument pdfDoc = new PdfDocument(reader, writer);
 			for (int i = 1; i <= pdfDoc.getNumberOfPages(); i++) {
 				PdfCanvas under = new PdfCanvas(pdfDoc.getPage(i).newContentStreamBefore(), new PdfResources(), pdfDoc);
@@ -48,12 +63,12 @@ public class EncryptWatermark {
 				under.saveState();
 				PdfFont font = PdfFontFactory.createFont(FontProgramFactory.createFont(FontConstants.HELVETICA));
 				Paragraph p = new Paragraph(content).setFont(font).setFontSize(50);
-				new Canvas(under, pdfDoc, pdfDoc.getDefaultPageSize()).showTextAligned(p, 297, 550, 1,
+				new Canvas(under, pdfDoc, pdfDoc.getDefaultPageSize()).showTextAligned(p,
+						pdfDoc.getDefaultPageSize().getWidth() / 2, pdfDoc.getDefaultPageSize().getHeight() / 2, 1,
 						TextAlignment.CENTER, VerticalAlignment.TOP, -50);
 			}
 			pdfDoc.close();
 		} catch (IOException e) {
-			System.out.println(e);
 			logger.error("EncryptWatermark process error: {} ", e);
 		}
 	}
